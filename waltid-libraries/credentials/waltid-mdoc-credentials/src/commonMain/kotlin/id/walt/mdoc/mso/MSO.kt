@@ -67,7 +67,12 @@ class MSO (
     val algorithm = DigestAlgorithm.entries.first { it.value == digestAlgorithm.value }
     return items.all {
       val digestId = it.decode<IssuerSignedItem>().digestID.value.toInt()
-      return msoDigests.containsKey(digestId) && msoDigests[digestId]!!.contentEquals(digestItem(it, algorithm))
+      val actualDigest = digestItem(
+        // need to do this to make sure the order of items is consistent with issuing part
+        IssuerSignedItem.fromMapElement(it.decodeDataElement()).toMapElement().toEncodedCBORElement(),
+        algorithm
+      )
+      return msoDigests.containsKey(digestId) && msoDigests[digestId]!!.contentEquals(actualDigest)
     }
   }
 
